@@ -1,11 +1,16 @@
-import stackMachine from './stack-machine';
-import shuntingYard from './shunting-yard';
+import run from './run';
+import compile from './compile';
+import lex from './lex';
 
 export default function (expression, definition) {
-  return stackMachine(
-    shuntingYard(
-      expression, definition
-    ),
-    definition
+  return run(
+    definition,
+    compile(
+      definition,
+      lex(
+        definition,
+        expression
+      )
+    )
   );
 }

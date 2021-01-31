@@ -1,24 +1,17 @@
-function error(m) {
-  console.log(m);
-  throw m;
-}
-
-function peek(stack) {
-  return stack[stack.length - 1];
-}
+import error from './error';
 
 export default function (
-  infixExpression,
   {
     operators,
     defaultOperator,
     escapeSymbol = '`',
     escapedValue = string => string
-  }
+  },
+  infixExpression // lex'd into an array
 ) {
   const operatorsMap = new Map(
     Object.entries(operators)
-  );
+  );s
 
   const representationOf =
     something => {
@@ -45,10 +38,19 @@ export default function (
   const awaitsValue =
     symbol => isInfix(symbol) || isPrefix(symbol);
 
-  const input = infixExpression.split('');
+  const hasDefaultOperator = defaultOperator != null && operatorsMap.has(defaultOperator);
+
+  const input = infixExpression
+    .split('')
+    .filter(c => hasDefaultOperator || !c.match(/\s/));
   const operatorStack = [];
   const reversePolishRepresentation = [];
   let awaitingValue = true;
+
+  console.log(JSON.stringify(input))
+
+  const unshiftDefaultOperatorIfPresent =
+    hasDefaultOperator ? () => input.unshift(defaultOperator) : () => undefined;
 
   while (input.length > 0) {
     const symbol = input.shift();
@@ -68,7 +70,7 @@ export default function (
 
           input.unshift(valueSymbol);
           input.unshift(escapeSymbol);
-          input.unshift(defaultOperator);
+          unshiftDefaultOperatorIfPresent();
         }
         awaitingValue = false;
       }
@@ -78,10 +80,8 @@ export default function (
       operatorStack.push(symbol);
       awaitingValue = true;
     } else if (symbol === '(') {
-      // value catenation
-
       input.unshift(symbol);
-      input.unshift(defaultOperator);
+      unshiftDefaultOperatorIfPresent();
       awaitingValue = false;
     } else if (symbol === ')') {
       // closing parenthesis case, clear the
@@ -122,7 +122,7 @@ export default function (
         // value catenation
 
         input.unshift(symbol);
-        input.unshift(defaultOperator);
+        unshiftDefaultOperatorIfPresent();
         awaitingValue = false;
       }
     } else if (isCombinator(symbol)) {
@@ -152,7 +152,7 @@ export default function (
       // value catenation
 
       input.unshift(symbol);
-      input.unshift(defaultOperator);
+      unshiftDefaultOperatorIfPresent();
       awaitingValue = false;
     }
   }
@@ -170,4 +170,10 @@ export default function (
   }
 
   return reversePolishRepresentation;
+}
+
+
+
+function peek(stack) {
+  return stack[stack.length - 1];
 }

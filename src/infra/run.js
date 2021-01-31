@@ -1,7 +1,7 @@
-export default function (representationList, {
-  operators,
-  toValue
-}) {
+export default function (
+  { operators, toValue },
+  representationList
+) {
   const functions = new Map(
     Object.entries(operators).map(
       ([key, { symbol, fn }]) => [symbol, fn]
