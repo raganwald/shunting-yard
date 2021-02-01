@@ -1,4 +1,4 @@
-import evaluate from './infra/evaluate';
+import test from './infra/test';
 
 const arithmetic = {
   operators: {
@@ -43,13 +43,10 @@ const arithmetic = {
   toValue: n => +n
 };
 
-const expressions = [
-  '(1+2)3!',
-  '1+2+3+4+5+6+7+8+9+0'
-];
-
-for (const expression of expressions) {
-  console.log(
-    `${expression} => ${JSON.stringify(evaluate(arithmetic, expression))}`
-  );
-}
+test(arithmetic, {
+  '1': 1,
+  '(1)': 1,
+  '(1+2)3!': 18,
+  '((1+2)3)!': 362880,
+  '1+2+3+4+5+6+7+8+9+0': 45
+});

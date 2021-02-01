@@ -5,7 +5,7 @@ import error from './error';
 // this version only supports single-character operators
 export default function (config, input) {
   if (typeof input !== 'string') {
-    error(config, `Don't know how to lex #{JSON.stringify(input.inspect)}`);
+    error(config, `Don't know how to lex ${JSON.stringify(input)}`);
   }
 
   // operators that automatically break symbols apart
@@ -23,13 +23,21 @@ export default function (config, input) {
   // split on whitespace
   // TODO: make whitespace breaking configurable?
   // seems unlikely
-  const strings = input.split(/\s+/);
+
+
+  const { defaultOperator, operators } = config;
+  const operatorsMap = new Map(
+    Object.entries(operators)
+  );
+  const hasDefaultOperator = defaultOperator != null && operatorsMap.has(defaultOperator);
+
+  const strings = hasDefaultOperator ? [input] : input.split(/\s+/);
 
   return split_strings_on_significant_chunks(strings, significantChunks);
 }
 
 function split_strings_on_significant_chunks(strings, chunks = []) {
-  console.log('split_strings_on_significant_chunks', JSON.stringify(strings), JSON.stringify(chunks));
+  // console.log('split_strings_on_significant_chunks', JSON.stringify(strings), JSON.stringify(chunks));
 
   if (chunks.length === 0) {
     return strings;
@@ -52,16 +60,22 @@ function split_strings_on_significant_chunks(strings, chunks = []) {
 // split each string around significant chunks,
 // but keep the chunks
 function split_on_a_significant_chunk(str, chunk) {
-  console.log('split_on_a_significant_chunk', JSON.stringify(str), JSON.stringify(chunk));
+  if (str.indexOf(chunk) < 0) return [str];
+
+  // console.log('split_on_a_significant_chunk', JSON.stringify(str), JSON.stringify(chunk));
 
   if (str.length === 0) {
     return [];
   } else if (str === chunk) {
     return [str];
   } else if (str.startsWith(chunk)) {
-    return [chunk].concat(split_on_a_significant_chunk(str.slice(chunk.size), chunk));
+    const restOfStr = str.slice(chunk.length);
+
+    // console.log(`str: ${str}, restOfStr: ${restOfStr}`);
+
+    return [chunk].concat(split_on_a_significant_chunk(str.slice(chunk.length), chunk));
   } else if (str.endsWith(chunk)) {
-    const strUptoChunk = str.slice(0, str.length - chunk.length - 1);
+    const strUptoChunk = str.slice(0, str.length - chunk.length);
 
     // console.log(`strUptoChunk: ${strUptoChunk}`);
 

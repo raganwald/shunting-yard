@@ -7,16 +7,25 @@ export default function (
     escapeSymbol = '`',
     escapedValue = string => string
   },
-  infixExpression // lex'd into an array
+  originalinput // lex'd into an array
 ) {
+  const input = [...originalinput];
   const operatorsMap = new Map(
     Object.entries(operators)
-  );s
+  );
 
   const representationOf =
     something => {
       if (operatorsMap.has(something)) {
-        const { symbol } = operatorsMap.get(something);
+        const configSomething = operatorsMap.get(something);
+
+        // console.log(`getting representation of ${something} from ${JSON.stringify(Object.keys(configSomething))}`);
+
+        // console.log(configSomething.symbol);
+
+        const { symbol } = configSomething;
+
+        // console.log(symbol);
 
         return symbol;
       } else if (typeof something === 'string') {
@@ -39,21 +48,19 @@ export default function (
     symbol => isInfix(symbol) || isPrefix(symbol);
 
   const hasDefaultOperator = defaultOperator != null && operatorsMap.has(defaultOperator);
-
-  const input = infixExpression
-    .split('')
-    .filter(c => hasDefaultOperator || !c.match(/\s/));
   const operatorStack = [];
   const reversePolishRepresentation = [];
   let awaitingValue = true;
 
-  console.log(JSON.stringify(input))
+  // console.log(JSON.stringify(input))
 
   const unshiftDefaultOperatorIfPresent =
     hasDefaultOperator ? () => input.unshift(defaultOperator) : () => undefined;
 
   while (input.length > 0) {
     const symbol = input.shift();
+
+    // console.log(`symbol: ${symbol}, input: ${JSON.stringify(input)}, operatorStack: ${JSON.stringify(operatorStack)}`);
 
     if (symbol === escapeSymbol) {
       if (input.length === 0) {
@@ -88,9 +95,19 @@ export default function (
       // operator stack
 
       while (operatorStack.length > 0 && peek(operatorStack) !== '(') {
+        const jssop = JSON.stringify(operatorStack);
+
         const op = operatorStack.pop();
 
-        reversePolishRepresentation.push(representationOf(op));
+        // console.log(`popping ${op} off ${jssop}`);
+
+        const r = representationOf(op);
+
+        // console.log(`pushing ${op} of type ${typeof r} onto ${JSON.stringify(reversePolishRepresentation)}`)
+
+        reversePolishRepresentation.push(r);
+
+        // console.log(reversePolishRepresentation.map(x  => x.toString()).join(', '))
       }
 
       if (peek(operatorStack) === '(') {
